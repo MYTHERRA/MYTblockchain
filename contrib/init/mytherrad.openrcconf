@@ -1,0 +1,33 @@
+# /etc/conf.d/mytherrad: config file for /etc/init.d/mytherrad
+
+# Config file location
+#MYTHERRAD_CONFIGFILE="/etc/mytherra/mytherra.conf"
+
+# What directory to write pidfile to?  (created and owned by $MYTHERRAD_USER)
+#MYTHERRAD_PIDDIR="/var/run/mytherrad"
+
+# What filename to give the pidfile
+#MYTHERRAD_PIDFILE="${MYTHERRAD_PIDDIR}/mytherrad.pid"
+
+# Where to write mytherrad data (be mindful that the blockchain is large)
+#MYTHERRAD_DATADIR="/var/lib/mytherrad"
+
+# User and group to own mytherrad process
+#MYTHERRAD_USER="mytherra"
+#MYTHERRAD_GROUP="mytherra"
+
+# Path to mytherrad executable
+#MYTHERRAD_BIN="/usr/bin/mytherrad"
+
+# Nice value to run mytherrad under
+#MYTHERRAD_NICE=0
+
+# Additional options (avoid -conf and -datadir, use flags above)
+#MYTHERRAD_OPTS=""
+
+# The timeout in seconds OpenRC will wait for mytherrad to terminate
+# after a SIGTERM has been raised.
+# Note that this will be mapped as argument to start-stop-daemon's
+# '--retry' option, which means you can specify a retry schedule
+# here. For more information see man 8 start-stop-daemon.
+MYTHERRAD_SIGTERM_TIMEOUT=600

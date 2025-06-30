@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+#
+#  mytherrad The mytherra core server.
+#
+#
+# chkconfig: 345 80 20
+# description: mytherrad
+# processname: mytherrad
+#
+
+# Source function library.
+. /etc/init.d/functions
+
+# you can override defaults in /etc/sysconfig/mytherrad, see below
+if [ -f /etc/sysconfig/mytherrad ]; then
+        . /etc/sysconfig/mytherrad
+fi
+
+RETVAL=0
+
+prog=mytherrad
+# you can override the lockfile via MYTHERRAD_LOCKFILE in /etc/sysconfig/mytherrad
+lockfile=${MYTHERRAD_LOCKFILE-/var/lock/subsys/mytherrad}
+
+# mytherrad defaults to /usr/bin/mytherrad, override with MYTHERRAD_BIN
+mytherrad=${MYTHERRAD_BIN-/usr/bin/mytherrad}
+
+# mytherrad opts default to -disablewallet, override with MYTHERRAD_OPTS
+mytherrad_opts=${MYTHERRAD_OPTS--disablewallet}
+
+start() {
+    echo -n $"Starting $prog: "
+    daemon $DAEMONOPTS $mytherrad $mytherrad_opts
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && touch $lockfile
+    return $RETVAL
+}
+
+stop() {
+    echo -n $"Stopping $prog: "
+    killproc $prog -t600
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && rm -f $lockfile
+    return $RETVAL
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        status $prog
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    *)
+        echo "Usage: service $prog {start|stop|status|restart}"
+        exit 1
+        ;;
+esac

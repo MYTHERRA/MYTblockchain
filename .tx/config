@@ -1,0 +1,7 @@
+[main]
+host = https://www.transifex.com
+
+[o:mytherra:p:mytherra:r:qt-translation-025x]
+file_filter = src/qt/locale/mytherra_<lang>.xlf
+source_file = src/qt/locale/mytherra_en.xlf
+source_lang = en

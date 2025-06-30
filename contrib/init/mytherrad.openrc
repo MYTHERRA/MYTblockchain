@@ -1,0 +1,93 @@
+#!/sbin/openrc-run
+
+# backward compatibility for existing gentoo layout 
+#
+if [ -d "/var/lib/mytherra/.mytherra" ]; then
+	MYTHERRAD_DEFAULT_DATADIR="/var/lib/mytherra/.mytherra"
+else
+	MYTHERRAD_DEFAULT_DATADIR="/var/lib/mytherrad"
+fi
+
+MYTHERRAD_CONFIGFILE=${MYTHERRAD_CONFIGFILE:-/etc/mytherra/mytherra.conf}
+MYTHERRAD_PIDDIR=${MYTHERRAD_PIDDIR:-/var/run/mytherrad}
+MYTHERRAD_PIDFILE=${MYTHERRAD_PIDFILE:-${MYTHERRAD_PIDDIR}/mytherrad.pid}
+MYTHERRAD_DATADIR=${MYTHERRAD_DATADIR:-${MYTHERRAD_DEFAULT_DATADIR}}
+MYTHERRAD_USER=${MYTHERRAD_USER:-${MYTHERRA_USER:-mytherra}}
+MYTHERRAD_GROUP=${MYTHERRAD_GROUP:-mytherra}
+MYTHERRAD_BIN=${MYTHERRAD_BIN:-/usr/bin/mytherrad}
+MYTHERRAD_NICE=${MYTHERRAD_NICE:-${NICELEVEL:-0}}
+MYTHERRAD_OPTS="${MYTHERRAD_OPTS:-${MYTHERRA_OPTS}}"
+
+name="Mytherra Core Daemon"
+description="Mytherra cryptocurrency P2P network daemon"
+
+command="/usr/bin/mytherrad"
+command_args="-pid=\"${MYTHERRAD_PIDFILE}\" \
+		-conf=\"${MYTHERRAD_CONFIGFILE}\" \
+		-datadir=\"${MYTHERRAD_DATADIR}\" \
+		-daemon \
+		${MYTHERRAD_OPTS}"
+
+required_files="${MYTHERRAD_CONFIGFILE}"
+start_stop_daemon_args="-u ${MYTHERRAD_USER} \
+			-N ${MYTHERRAD_NICE} -w 2000"
+pidfile="${MYTHERRAD_PIDFILE}"
+
+# The retry schedule to use when stopping the daemon. Could be either
+# a timeout in seconds or multiple signal/timeout pairs (like
+# "SIGKILL/180 SIGTERM/300")
+retry="${MYTHERRAD_SIGTERM_TIMEOUT}"
+
+depend() {
+	need localmount net
+}
+
+# verify
+# 1) that the datadir exists and is writable (or create it)
+# 2) that a directory for the pid exists and is writable
+# 3) ownership and permissions on the config file
+start_pre() {
+	checkpath \
+	-d \
+	--mode 0750 \
+	--owner "${MYTHERRAD_USER}:${MYTHERRAD_GROUP}" \
+	"${MYTHERRAD_DATADIR}"
+
+	checkpath \
+	-d \
+	--mode 0755 \
+	--owner "${MYTHERRAD_USER}:${MYTHERRAD_GROUP}" \
+	"${MYTHERRAD_PIDDIR}"
+
+	checkpath -f \
+	-o "${MYTHERRAD_USER}:${MYTHERRAD_GROUP}" \
+	-m 0660 \
+	"${MYTHERRAD_CONFIGFILE}"
+
+	checkconfig || return 1
+}
+
+checkconfig()
+{
+	if grep -qs '^rpcuser=' "${MYTHERRAD_CONFIGFILE}" && \
+		! grep -qs '^rpcpassword=' "${MYTHERRAD_CONFIGFILE}" ; then
+		eerror ""
+		eerror "ERROR: You must set a secure rpcpassword to run mytherrad."
+		eerror "The setting must appear in ${MYTHERRAD_CONFIGFILE}"
+		eerror ""
+		eerror "This password is security critical to securing wallets "
+		eerror "and must not be the same as the rpcuser setting."
+		eerror "You can generate a suitable random password using the following "
+		eerror "command from the shell:"
+		eerror ""
+		eerror "bash -c 'tr -dc a-zA-Z0-9 < /dev/urandom | head -c32 && echo'"
+		eerror ""
+		eerror "It is recommended that you also set alertnotify so you are "
+		eerror "notified of problems:"
+		eerror ""
+		eerror "ie: alertnotify=echo %%s | mail -s \"Mytherra Alert\"" \
+			"admin@foo.com"
+		eerror ""
+		return 1
+	fi
+}

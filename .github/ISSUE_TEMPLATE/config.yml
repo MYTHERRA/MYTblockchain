@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Mytherra Core Security Policy
+    url: https://github.com/mytherra/mytherra/blob/master/SECURITY.md
+    about: View security policy
+  - name: Mytherra Core Developers
+    url: https://bitcoincore.org
+    about: Mytherra Core homepage
